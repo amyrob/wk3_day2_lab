@@ -27,12 +27,13 @@ class Bounty
       VALUES
       (
         $1, $2, $3, $4
-        );
+        )
+        RETURNING *;
         "
 
         values = [@name, @species, @bounty_value, @danger_value]
         db.prepare("save", sql)
-        db.exec_prepared("save", values)
+        @id = db.exec_prepared("save", values)[0]['id'].to_i
         db.close
       end
 
@@ -51,20 +52,22 @@ class Bounty
             $1, $2, $3, $4
           )
           WHERE id = $5
+          RETURNING *
           ;"
           values =[@name, @species, @bounty_value, @danger_value, @id]
           db.prepare("update", sql)
-          db.exec_prepared("update", values)
+          @id = db.exec_prepared("update", values)[0]['id'].to_i
           db.close
         end
 
         def delete()
           db = PG.connect ( { dbname: 'space_cowboys', host: 'localhost' } )
           sql =
-          "DELETE FROM bounty WHERE id = $1;"
+          "DELETE FROM bounty WHERE id = $1
+          RETURNING * ;"
           values = [@id]
           db.prepare("delete_one", sql)
-          db.exec_prepared("delete_one", values)
+          @id = db.exec_prepared("delete_one", values)[0]['id'].to_i
           db.close
         end
 
